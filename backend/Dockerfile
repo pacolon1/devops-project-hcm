@@ -25,3 +25,17 @@
 # ===========================================
 
 # YOUR CODE HERE:
+Dockerfile
+# Stage 1: Build stage (Cài đặt dependencies)
+FROM node:18-alpine AS builder
+WORKDIR /app
+COPY package*.json ./
+RUN npm install
+COPY . .
+
+# Stage 2: Production stage (Chỉ copy những gì cần thiết để chạy)
+FROM node:18-alpine
+WORKDIR /app
+COPY --from=builder /app .
+EXPOSE 8080
+CMD ["npm", "start"]
