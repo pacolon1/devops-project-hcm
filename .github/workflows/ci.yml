@@ -71,7 +71,6 @@ jobs:
   # GIAI ĐOẠN 2: TRIỂN KHAI LIÊN TỤC (CD)
   # ---------------------------------------------
   deploy:
-    # Chỉ chạy deploy khi job build-and-test thành công VÀ hành động là push vào main
     needs: build-and-test
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
@@ -82,16 +81,10 @@ jobs:
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USERNAME }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          port: 22
           script: |
-            # Di chuyển vào thư mục dự án trên server
             cd devops-project-hcm
-            
-            # Kéo code mới nhất từ GitHub
             git pull origin main
-            
-            # Kéo ảnh Docker mới nhất từ Docker Hub
             docker-compose pull
-            
-            # Khởi động lại hệ thống với code mới
             docker-compose up -d
