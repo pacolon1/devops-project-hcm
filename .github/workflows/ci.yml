@@ -35,7 +35,7 @@ jobs:
           node-version: '18'
           # Tối ưu: Cache giúp npm install nhanh hơn ở những lần sau
           cache: 'npm'
-          cache-dependency-path: backend/package-lock.json
+          cache-dependency-path: backend/package.json
 
       - name: Cài đặt thư viện và Chạy Test (Backend)
         env:
