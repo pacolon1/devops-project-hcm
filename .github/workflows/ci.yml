@@ -56,7 +56,7 @@ jobs:
           npm install
           
           
-          npx jest --forceExit --detectOpenHandles
+          npm test
 
       - name: Đăng nhập vào Docker Hub
         uses: docker/login-action@v3
