@@ -42,7 +42,7 @@ jobs:
       - name: Cài đặt thư viện và Chạy Test (Backend)
         run: |
           cd backend
-          npm ci
+          npm install
           npm test
         env:
           DB_HOST: localhost
