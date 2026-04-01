@@ -33,6 +33,9 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '18'
+          # Tối ưu: Cache giúp npm install nhanh hơn ở những lần sau
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
 
       - name: Cài đặt thư viện và Chạy Test (Backend)
         env:
@@ -43,12 +46,18 @@ jobs:
           DB_PORT: 5432
           PGPASSWORD: devops_password
         run: |
-          # Đổ dữ liệu mẫu
+          # 1. Đổ dữ liệu mẫu
           psql -h localhost -U devops_user -d devops_db -f database/database.sql
+          
+          # 2. Di chuyển vào thư mục backend
           cd backend
-          npm install
-          # SỬA Ở ĐÂY: Thêm --forceExit để tránh treo Pipeline
-          npx jest --forceExit
+          
+          # 3. Sử dụng npm ci thay vì npm install để đảm bảo tính nhất quán và tốc độ trên CI
+          npm ci
+          
+          # 4. Chạy Jest bằng npx (tự động xử lý quyền thực thi)
+          # Thêm --forceExit và --detectOpenHandles để đảm bảo không bị treo sau khi test xong
+          npx jest --forceExit --detectOpenHandles
 
       - name: Đăng nhập vào Docker Hub
         uses: docker/login-action@v3
@@ -82,7 +91,6 @@ jobs:
           script: |
             cd devops-project-hcm
             git fetch origin
-            # Tự động checkout và pull đúng nhánh đang làm việc
             git checkout ${{ github.ref_name }} || git checkout -b ${{ github.ref_name }}
             git pull origin ${{ github.ref_name }}
             docker-compose pull
