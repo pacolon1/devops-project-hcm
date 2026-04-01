@@ -40,16 +40,21 @@ jobs:
           node-version: '18'
 
       - name: Cài đặt thư viện và Chạy Test (Backend)
-        run: |
-          cd backend
-          npm install
-          npm test
         env:
           DB_HOST: localhost
           DB_USER: devops_user
           DB_PASSWORD: devops_password
           DB_NAME: devops_db
           DB_PORT: 5432
+          PGPASSWORD: devops_password # Thêm biến này để psql tự đăng nhập
+        run: |
+          # 1. Đổ dữ liệu từ file init.sql vào database để tạo bảng todos
+          psql -h localhost -U devops_user -d devops_db -f database/init.sql
+          
+          # 2. Di chuyển vào thư mục và chạy test
+          cd backend
+          npm ci
+          npm test
 
       - name: Đăng nhập vào Docker Hub
         uses: docker/login-action@v3
