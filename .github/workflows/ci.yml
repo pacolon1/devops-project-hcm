@@ -44,13 +44,13 @@ jobs:
           DB_PORT: 5432
           PGPASSWORD: devops_password
         run: |
-          # 1. Đợi DB sẵn sàng và đổ dữ liệu
           psql -h localhost -U devops_user -d devops_db -f database/database.sql
-          
-          # 2. Test Backend
           cd backend
           npm install
-          npm test
+          # Cấp quyền thực thi cho tất cả các file trong .bin (để tránh lỗi permission)
+          chmod +x node_modules/.bin/jest
+          # Sử dụng npx để chạy jest chắc chắn hơn
+          npx jest
 
       - name: Đăng nhập vào Docker Hub
         uses: docker/login-action@v3
