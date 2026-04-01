@@ -49,7 +49,7 @@ jobs:
           
           # 2. Test Backend
           cd backend
-          npm ci
+          npm install
           npm test
 
       - name: Đăng nhập vào Docker Hub
