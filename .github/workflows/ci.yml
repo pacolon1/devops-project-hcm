@@ -49,7 +49,7 @@ jobs:
           PGPASSWORD: devops_password # Thêm biến này để psql tự đăng nhập
         run: |
           # 1. Đổ dữ liệu từ file init.sql vào database để tạo bảng todos
-          psql -h localhost -U devops_user -d devops_db -f database/init.sql
+          psql -h localhost -U devops_user -d devops_db -f database/database.sql
           
           # 2. Di chuyển vào thư mục và chạy test
           cd backend
