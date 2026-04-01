@@ -2,7 +2,6 @@ name: CI/CD Pipeline
 
 on:
   push:
-    # Thêm nhánh bạn đang làm vào đây để pipeline kích hoạt ngay lập tức
     branches: [ "main", "feature/setup-cicd-pipeline" ]
   pull_request:
     branches: [ "main" ]
@@ -44,13 +43,12 @@ jobs:
           DB_PORT: 5432
           PGPASSWORD: devops_password
         run: |
+          # Đổ dữ liệu mẫu
           psql -h localhost -U devops_user -d devops_db -f database/database.sql
           cd backend
           npm install
-          # Cấp quyền thực thi cho tất cả các file trong .bin (để tránh lỗi permission)
-          chmod +x node_modules/.bin/jest
-          # Sử dụng npx để chạy jest chắc chắn hơn
-          npx jest
+          # SỬA Ở ĐÂY: Thêm --forceExit để tránh treo Pipeline
+          npx jest --forceExit
 
       - name: Đăng nhập vào Docker Hub
         uses: docker/login-action@v3
@@ -70,7 +68,6 @@ jobs:
 
   deploy:
     needs: build-and-test
-    # Sửa điều kiện if để cho phép deploy từ nhánh feature của bạn
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/feature/setup-cicd-pipeline')
     runs-on: ubuntu-latest
 
@@ -84,9 +81,9 @@ jobs:
           port: 22
           script: |
             cd devops-project-hcm
-            # Cập nhật đúng nhánh đang làm việc
             git fetch origin
-            git checkout ${{ github.ref_name }}
+            # Tự động checkout và pull đúng nhánh đang làm việc
+            git checkout ${{ github.ref_name }} || git checkout -b ${{ github.ref_name }}
             git pull origin ${{ github.ref_name }}
             docker-compose pull
             docker-compose up -d
