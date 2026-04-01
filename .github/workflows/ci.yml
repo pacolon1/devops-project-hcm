@@ -34,7 +34,7 @@ jobs:
         with:
           node-version: '18'
           cache: 'npm'
-          cache-dependency-path: backend/package.json
+          cache-dependency-path: backend/package-lock.json
 
       - name: Cài đặt thư viện và Chạy Test (Backend)
         env:
@@ -58,7 +58,7 @@ jobs:
           chmod +x ./node_modules/.bin/jest
           
           # 5. Chạy test thông qua npx để ổn định hơn
-          npm test -- --passWithNoTests
+          npm test -- --passWithNoTests --forceExit
 
       - name: Đăng nhập vào Docker Hub
         if: success() # Chỉ chạy nếu test pass
