@@ -1,20 +1,16 @@
 name: CI/CD Pipeline
 
-# Kích hoạt pipeline khi có Push hoặc Pull Request vào nhánh main
 on:
   push:
-    branches: [ "main" ]
+    # Thêm nhánh bạn đang làm vào đây để pipeline kích hoạt ngay lập tức
+    branches: [ "main", "feature/setup-cicd-pipeline" ]
   pull_request:
     branches: [ "main" ]
 
 jobs:
-  # ---------------------------------------------
-  # GIAI ĐOẠN 1: TÍCH HỢP LIÊN TỤC (CI)
-  # ---------------------------------------------
   build-and-test:
     runs-on: ubuntu-latest
 
-    # Khởi tạo Database tạm thời để chạy Test
     services:
       postgres:
         image: postgres:15-alpine
@@ -46,12 +42,12 @@ jobs:
           DB_PASSWORD: devops_password
           DB_NAME: devops_db
           DB_PORT: 5432
-          PGPASSWORD: devops_password # Thêm biến này để psql tự đăng nhập
+          PGPASSWORD: devops_password
         run: |
-          # 1. Đổ dữ liệu từ file init.sql vào database để tạo bảng todos
+          # 1. Đợi DB sẵn sàng và đổ dữ liệu
           psql -h localhost -U devops_user -d devops_db -f database/database.sql
           
-          # 2. Di chuyển vào thư mục và chạy test
+          # 2. Test Backend
           cd backend
           npm ci
           npm test
@@ -72,12 +68,10 @@ jobs:
           docker build -t ${{ secrets.DOCKER_USERNAME }}/devops-frontend:latest ./frontend
           docker push ${{ secrets.DOCKER_USERNAME }}/devops-frontend:latest
 
-  # ---------------------------------------------
-  # GIAI ĐOẠN 2: TRIỂN KHAI LIÊN TỤC (CD)
-  # ---------------------------------------------
   deploy:
     needs: build-and-test
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    # Sửa điều kiện if để cho phép deploy từ nhánh feature của bạn
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/feature/setup-cicd-pipeline')
     runs-on: ubuntu-latest
 
     steps:
@@ -90,6 +84,9 @@ jobs:
           port: 22
           script: |
             cd devops-project-hcm
-            git pull origin main
+            # Cập nhật đúng nhánh đang làm việc
+            git fetch origin
+            git checkout ${{ github.ref_name }}
+            git pull origin ${{ github.ref_name }}
             docker-compose pull
             docker-compose up -d
