@@ -34,7 +34,7 @@ jobs:
         with:
           node-version: '18'
           cache: 'npm'
-          cache-dependency-path: backend/package.json
+          cache-dependency-path: backend/package-lock.json
 
       - name: Cài đặt thư viện và Chạy Test (Backend)
         env:
