@@ -40,16 +40,21 @@ jobs:
           node-version: '18'
 
       - name: Cài đặt thư viện và Chạy Test (Backend)
-        run: |
-          cd backend
-          npm ci
-          npm test
         env:
           DB_HOST: localhost
           DB_USER: devops_user
           DB_PASSWORD: devops_password
           DB_NAME: devops_db
           DB_PORT: 5432
+          PGPASSWORD: devops_password # Thêm biến này để psql tự đăng nhập
+        run: |
+          # 1. Đổ dữ liệu từ file init.sql vào database để tạo bảng todos
+          psql -h localhost -U devops_user -d devops_db -f database/init.sql
+          
+          # 2. Di chuyển vào thư mục và chạy test
+          cd backend
+          npm ci
+          npm test
 
       - name: Đăng nhập vào Docker Hub
         uses: docker/login-action@v3
@@ -71,7 +76,6 @@ jobs:
   # GIAI ĐOẠN 2: TRIỂN KHAI LIÊN TỤC (CD)
   # ---------------------------------------------
   deploy:
-    # Chỉ chạy deploy khi job build-and-test thành công VÀ hành động là push vào main
     needs: build-and-test
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
@@ -82,16 +86,10 @@ jobs:
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USERNAME }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          port: 22
           script: |
-            # Di chuyển vào thư mục dự án trên server
             cd devops-project-hcm
-            
-            # Kéo code mới nhất từ GitHub
             git pull origin main
-            
-            # Kéo ảnh Docker mới nhất từ Docker Hub
             docker-compose pull
-            
-            # Khởi động lại hệ thống với code mới
             docker-compose up -d
