@@ -58,7 +58,7 @@ jobs:
           chmod +x ./node_modules/.bin/jest
           
           # 5. Chạy test thông qua npx để ổn định hơn
-          npm test -- --passWithNoTests--forceExit
+          npm test -- --passWithNoTests --forceExit
 
       - name: Đăng nhập vào Docker Hub
         if: success() # Chỉ chạy nếu test pass
