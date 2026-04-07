@@ -87,16 +87,17 @@ jobs:
           port: 22
           script: |
             cd ~/devops-project-hcm
-            # 1. Cập nhật code mới nhất
             git fetch origin
             git checkout main
             git pull origin main
             
-            # 2. Dọn dẹp các container cũ đang bị lỗi cấu hình (Quan trọng)
+            # LỆNH MỚI: Dừng tất cả container đang chạy để giải phóng port 8080
+            docker stop $(docker ps -aq) || true
+            docker rm $(docker ps -aq) || true
+            
+            # Dọn dẹp theo compose
             docker-compose down --remove-orphans
             
-            # 3. Kéo ảnh mới từ Docker Hub về
+            # Kéo ảnh và chạy lại
             docker-compose pull
-            
-            # 4. Khởi động lại hệ thống
             docker-compose up -d --force-recreate
