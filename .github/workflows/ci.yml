@@ -47,11 +47,11 @@ jobs:
           DB_NAME: devops_db
           DB_PORT: 5432
           PGPASSWORD: devops_password
+          NODE_ENV: test # THÊM DÒNG NÀY VÀO ĐÂY
         run: |
           psql -h localhost -U devops_user -d devops_db -f database/database.sql
           cd backend
           npm ci 
-          # Chạy test qua npx để tránh vấn đề permission
           npx jest --passWithNoTests --forceExit --detectOpenHandles
 
       - name: Đăng nhập vào Docker Hub
