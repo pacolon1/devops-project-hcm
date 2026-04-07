@@ -1,4 +1,4 @@
-version: '3.8'
+# version: '3.8'
 
 services:
   # 1. DATABASE SERVICE
@@ -6,17 +6,18 @@ services:
     image: postgres:15-alpine
     container_name: devops_postgres
     environment:
-      POSTGRES_USER: devops_user
-      POSTGRES_PASSWORD: devops_password
-      POSTGRES_DB: devops_db
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
     ports:
-      - "5432:5432"
+      # HOST_PORT:CONTAINER_PORT
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      # Mount file init.sql từ thư mục database vào trong container để tạo bảng tự động
-      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+      # - ./pg_data:/var/lib/postgresql/data
+      - ./database/database.sql:/docker-entrypoint-initdb.d/database.sql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U devops_user -d devops_db"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -28,12 +29,12 @@ services:
       dockerfile: Dockerfile
     container_name: devops_backend
     ports:
-      - "8080:8080"
+      - "8081:8080"
     environment:
       - DB_HOST=postgres
-      - DB_USER=devops_user
-      - DB_PASSWORD=devops_password
-      - DB_NAME=devops_db
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
       - DB_PORT=5432
     depends_on:
       postgres:
@@ -46,7 +47,7 @@ services:
       dockerfile: Dockerfile
     container_name: devops_frontend
     ports:
-      - "3000:3000"
+      - "3001:3000"
     depends_on:
       - backend
 

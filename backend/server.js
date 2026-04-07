@@ -11,8 +11,8 @@ app.use(express.json());
 // BUG #1: Wrong default password - doesn't match docker-compose!
 const pool = new Pool({
    user: process.env.DB_USER || 'postgres',
-   // host: process.env.DB_HOST || 'localhost',
-   host: process.env.DB_HOST || 'host.docker.internal', // Use this address for Docker to connect to host's PostgreSQL
+   host: process.env.DB_HOST || 'localhost',
+   // host: process.env.DB_HOST || 'host.docker.internal', // Use this address for Docker to connect to host's PostgreSQL
    database: process.env.DB_NAME || 'tododb',
    password: process.env.DB_PASSWORD || 'postgres',
    port: process.env.DB_PORT || 5432,
@@ -24,6 +24,7 @@ app.get('/health', (req, res) => {
 
 // GET todos
 app.get('/api/todos', async (req, res) => {
+   console.log('Received GET /api/todos request');
    try {
       const result = await pool.query('SELECT * FROM todos ORDER BY id');
       res.json(result.rows);
