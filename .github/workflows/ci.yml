@@ -6,10 +6,13 @@ on:
   pull_request:
     branches: [ "main" ]
 
+# Thêm biến này ở mức toàn cục để tắt cảnh báo Node 20
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
-
     services:
       postgres:
         image: postgres:15-alpine
@@ -34,7 +37,7 @@ jobs:
         with:
           node-version: '18'
           cache: 'npm'
-          cache-dependency-path: backend/package-lock.json
+          cache-dependency-path: '**/package-lock.json'
 
       - name: Cài đặt thư viện và Chạy Test (Backend)
         env:
@@ -44,24 +47,15 @@ jobs:
           DB_NAME: devops_db
           DB_PORT: 5432
           PGPASSWORD: devops_password
+          NODE_ENV: test # THÊM DÒNG NÀY VÀO ĐÂY
         run: |
-          # 1. Khởi tạo Database
           psql -h localhost -U devops_user -d devops_db -f database/database.sql
-          
-          # 2. Vào thư mục backend
           cd backend
-          
-          # 3. Cài đặt (clean install để đảm bảo quyền hạn)
           npm ci 
-          
-          # 4. Sửa lỗi Permission denied cho Jest
-          chmod +x ./node_modules/.bin/jest
-          
-          # 5. Chạy test thông qua npx để ổn định hơn
-          npm test -- --passWithNoTests --forceExit
+          npx jest --passWithNoTests --forceExit --detectOpenHandles
 
       - name: Đăng nhập vào Docker Hub
-        if: success() # Chỉ chạy nếu test pass
+        if: success()
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
@@ -79,7 +73,8 @@ jobs:
 
   deploy:
     needs: build-and-test
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/feature/setup-cicd-pipeline')
+    # SỬA Ở ĐÂY: Cho phép chạy khi push lên bất kỳ nhánh nào trong danh sách trên
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
 
     steps:
@@ -91,7 +86,15 @@ jobs:
           password: ${{ secrets.SSH_PASSWORD }}
           port: 22
           script: |
-            cd devops-project-hcm
+            # Đảm bảo thư mục tồn tại trên server
+            mkdir -p ~/devops-project-hcm
+            cd ~/devops-project-hcm
+            
+            # Nếu chưa có git thì clone, có rồi thì fetch
+            if [ ! -d ".git" ]; then
+              git clone https://github.com/${{ github.repository }}.git .
+            fi
+            
             git fetch origin
             git checkout ${{ github.ref_name }}
             git pull origin ${{ github.ref_name }}
