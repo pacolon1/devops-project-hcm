@@ -11,7 +11,8 @@ app.use(express.json());
 // BUG #1: Wrong default password - doesn't match docker-compose!
 const pool = new Pool({
    user: process.env.DB_USER || 'postgres',
-   host: process.env.DB_HOST || 'localhost',
+   // host: process.env.DB_HOST || 'localhost',
+   host: process.env.DB_HOST || 'host.docker.internal', // Use this address for Docker to connect to host's PostgreSQL
    database: process.env.DB_NAME || 'tododb',
    password: process.env.DB_PASSWORD || 'postgres',
    port: process.env.DB_PORT || 5432,
@@ -109,3 +110,15 @@ if (process.env.NODE_ENV !== 'test') {
 // BUG #6: App not exported - tests can't import it!
 // STUDENT FIX: Export the app module
 module.exports = app;
+
+
+// Check if the database is running and has the correct credentials
+pool.connect()
+   .then(client => {
+      console.log('Connected to PostgreSQL database successfully!');
+      client.release();
+   })
+   .catch(err => {
+      console.error('Failed to connect to PostgreSQL database:', err.message);
+      process.exit(1); // Exit with failure code
+   });
