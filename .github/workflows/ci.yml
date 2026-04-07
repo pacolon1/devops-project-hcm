@@ -86,17 +86,17 @@ jobs:
           password: ${{ secrets.SSH_PASSWORD }}
           port: 22
           script: |
-            # Đảm bảo thư mục tồn tại trên server
-            mkdir -p ~/devops-project-hcm
             cd ~/devops-project-hcm
-            
-            # Nếu chưa có git thì clone, có rồi thì fetch
-            if [ ! -d ".git" ]; then
-              git clone https://github.com/${{ github.repository }}.git .
-            fi
-            
+            # 1. Cập nhật code mới nhất
             git fetch origin
-            git checkout ${{ github.ref_name }}
-            git pull origin ${{ github.ref_name }}
+            git checkout main
+            git pull origin main
+            
+            # 2. Dọn dẹp các container cũ đang bị lỗi cấu hình (Quan trọng)
+            docker-compose down --remove-orphans
+            
+            # 3. Kéo ảnh mới từ Docker Hub về
             docker-compose pull
-            docker-compose up -d --remove-orphans
+            
+            # 4. Khởi động lại hệ thống
+            docker-compose up -d --force-recreate
