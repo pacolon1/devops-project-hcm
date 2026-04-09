@@ -8,6 +8,7 @@ describe('Todos API', () => {
       expect(res.status).toBe(200);
       expect(res.body.status).toBe('healthy');
    });
+   
 
    // Test 2: Get all todos
    it('GET /api/todos should return array', async () => {

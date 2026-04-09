@@ -39,9 +39,33 @@ function App() {
     }
   };
 
+  const toggleTodo = async (id, currentStatus) => {
+    try {
+      await fetch(`${API_URL}/api/todos/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ completed: !currentStatus })
+      });
+      fetchTodos(); // Cập nhật lại list sau khi sửa
+    } catch (err) {
+      alert('Failed to update todo');
+    }
+  };
+
+  const deleteTodo = async (id) => {
+    try {
+      await fetch(`${API_URL}/api/todos/${id}`, {
+        method: 'DELETE'
+      });
+      fetchTodos(); // Cập nhật lại list sau khi xóa
+    } catch (err) {
+      alert('Failed to delete todo');
+    }
+  };
+
   return (
     <div style={{ padding: '20px', maxWidth: '600px', margin: '0 auto' }}>
-      <h1>🚀 DevOps Todo App</h1>
+      <h1>🚀 DevOps Todo AppDaikunho</h1>
       <p>Demo: Watch UI update LIVE after CI/CD! ✨</p>
 
       <div style={{ marginBottom: '20px' }}>
@@ -56,17 +80,31 @@ function App() {
         </button>
       </div>
 
-      <ul style={{ listStyle: 'none', padding: 0 }}>
+<ul style={{ listStyle: 'none', padding: 0 }}>
         {todos.map(todo => (
           <li key={todo.id} style={{
             padding: '10px',
             border: '1px solid #ddd',
             marginBottom: '5px',
             display: 'flex',
-            justifyContent: 'space-between'
+            justifyContent: 'space-between',
+            alignItems: 'center' // Căn giữa nội dung
           }}>
-            <span>{todo.title}</span>
-            <small>{todo.completed ? '✅' : '⏳'}</small>
+            <span 
+              style={{ textDecoration: todo.completed ? 'line-through' : 'none', cursor: 'pointer' }}
+              onClick={() => toggleTodo(todo.id, todo.completed)}
+            >
+              {todo.title}
+            </span>
+            
+            <div>
+              <span style={{ marginRight: '10px', cursor: 'pointer' }} onClick={() => toggleTodo(todo.id, todo.completed)}>
+                {todo.completed ? '✅' : '⏳'}
+              </span>
+              <button onClick={() => deleteTodo(todo.id)} style={{ padding: '2px 5px', color: 'red' }}>
+                X
+              </button>
+            </div>
           </li>
         ))}
       </ul>
